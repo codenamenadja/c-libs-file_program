@@ -30,11 +30,9 @@ size_t ft_shallow_copy(char *dest, const char *src, size_t cur)
 void ft_perror(char *path)
 {
     char buf[BUFSIZ];
-    char *buf_pt;
     size_t cur;
 
     cur = 0;
-    buf_pt = buf;
     cur += ft_shallow_copy(buf, "cat: ", cur);
     cur += ft_shallow_copy(buf, path, cur);
     cur += ft_shallow_copy(buf, ": ", cur);
@@ -46,7 +44,6 @@ void ft_perror(char *path)
 int open_handler(char *path)
 {
     int     fd;
-    int     i;
 
     fd = open(path, O_RDONLY);
     return (fd);
