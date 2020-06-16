@@ -11,16 +11,17 @@
 int ft_perror()
 {
     int i;
-    char buf[64];
     char *err_str;
+
     if (errno)
     {
-        i = -1;
-        while(*err_str && ++i < 64)
-            *(buf+i) = *(err_str+i);
-        write(STDOUT_FILENO, buf, 64);
+        i = 0;
+        err_str = strerror(errno);
+        while (*(err_str + i))
+            i++;
+        write(STDOUT_FILENO, err_str, i);
     }   else
-        write(STDOUT_FILENO, "invalid args\n", 13);
+        write(STDOUT_FILENO, "unknown error!\n", 15);
     return (EXIT_FAILURE);
 }
 
@@ -32,30 +33,104 @@ int open_handler(char *filename)
     return (fd);
 }
 
-int ft_tail(int fd, unsigned long long option)
+size_t ft_strlen(char *str)
 {
-    char buf[BUFSIZ];
-    ssize_t read_bytes;
-    printf("ft_tail fd : %d, option : %llu\n", fd, option);
+    size_t bytes;
 
-    while ((read_bytes = read(fd, buf, BUFSIZ)) && read_bytes != -1)
-        if (option < (unsigned long long)read_bytes)
-        {
-            write(STDOUT_FILENO, buf + option, read_bytes - (ssize_t)option);
-            option = 0;
-        }   else if (!option)
-            write(STDOUT_FILENO, buf, read_bytes);
-        else
-            option -= (unsigned long long)read_bytes;
-    if (read_bytes == -1)
-        return ft_perror();
-    return (EXIT_SUCCESS);
+    bytes = 0;
+
+    while (*(str + bytes))
+        bytes++;
+    return bytes;
 }
 
-unsigned long long option_handler(char *option)
+char *ft_strdup(char *str)
 {
-    unsigned long long res;
-    unsigned long long key;
+    char *res; 
+    size_t len;
+    size_t i;
+
+    len = ft_strlen(str);
+    res = malloc(sizeof(char) * len + 1);
+    if(!res)
+        return NULL;
+    i = 0;
+    while (i < len)
+    {
+        *(res+i) = *(str+i);
+        i++;
+    }
+    *(res + i) = 0;
+    return (res);
+}
+
+void ft_bzero(char *str)
+{
+    while (*str)
+        *str++ = 0;
+}
+
+void ft_fflush(char **linebuf)
+{
+    while ((*linebuf) != NULL)
+        free(*linebuf++);
+}
+int ft_tail(int fd, unsigned int option)
+{
+    char strbuf[BUFSIZ];
+    char *linebuf[BUFSIZ];
+    ssize_t read_bytes;
+    char *buf_pt;
+    int lines;
+
+    if (option)
+    {
+        option--;
+        read(fd, strbuf, option);
+        ft_bzero(strbuf);
+        while ((read_bytes = read(fd, strbuf, BUFSIZ)))
+        {
+            if (read_bytes == -1)
+                return ft_perror();
+            write(STDOUT_FILENO, strbuf, read_bytes);
+        }
+    } else {
+        lines = 0;
+        buf_pt = strbuf;
+        while(read_bytes = read(fd, buf_pt, 1))
+        {
+            if(read_bytes == -1)
+            {
+                ft_fflush(linebuf);
+                return ft_perror();
+            }
+            if(*buf_pt++ == '\n')
+            {
+                *(linebuf+lines) = ft_strdup(strbuf);
+                lines++;
+                ft_bzero(strbuf);
+                buf_pt = strbuf;
+            }
+        }
+        *(linebuf+lines) = ft_strdup(strbuf);
+        if (lines > 10)
+            lines -= 10;
+        else
+            lines = 0;
+        while (*(linebuf+lines))
+        {
+            write(STDOUT_FILENO, *(linebuf+lines), ft_strlen(*(linebuf+lines)));
+            lines++;
+        }
+        ft_fflush(linebuf);
+    }
+    return EXIT_SUCCESS;
+}
+
+unsigned int option_handler(char *option)
+{
+    unsigned int    res;
+    char            key;
 
     if (*option++ == '-')
         if(*option++ == 'c')
@@ -65,9 +140,12 @@ unsigned long long option_handler(char *option)
             {
                 if (res)
                     res *= 10;
-                res += key;    
+                res += key; 
                 if (*option == 0)
+                {
+                    res = (res == 0) ? 1 : res;
                     return (res);
+                }
             }
         }
     return (0);
@@ -81,21 +159,33 @@ int main(int argc, char *argv[])
 
     int i;
     int fd;
-    unsigned long long option;
+    unsigned int option;
 
-    if (argc != 2 && argc != 3)
-    {
-        write(STDOUT_FILENO, "argc not valid\n", 15);
-        return ft_perror();
+    if (argc == 2)
+        if ((fd = open_handler(argv[1])) != -1)
+        {
+            ft_tail(fd, 0);
+            close(fd);
+            return write(STDOUT_FILENO, "1\n", 2); // last 10 lines
+        }
+    if (argc == 3) {
+        if((fd = open_handler(argv[1])) != -1 && (option = option_handler(argv[2])) != 0)
+        {
+            ft_tail(fd, option);
+            close(fd);
+            return write(STDOUT_FILENO, "2\n", 2); // option on second
+        }
+        else if((fd = open_handler(argv[2])) != -1 && (option = option_handler(argv[1])) != 0)
+        {
+            ft_tail(fd, option);
+            close(fd);
+            return write(STDOUT_FILENO, "3\n", 2);
+        }
     }
-    if (argc == 2 && (fd = open_handler(argv[1])) != -1)
-        return ft_tail(fd, 0); // last 10 lines
-    if (fd != -1 && (option = option_handler(argv[2])))
-        return ft_tail(fd, option); // first was filename with valid option
-    if (fd == -1 && (fd = open_handler(argv[2]) != -1))
-        if ((option = option_handler(argv[1])))
-            return ft_tail(fd, option); // second was filename with valid option
+    if (fd == -1)
+        return ft_perror();
     write(STDOUT_FILENO, "error!\n", 7);
+    close(fd);
     return EXIT_FAILURE; 
 }
 
