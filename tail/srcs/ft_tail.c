@@ -85,14 +85,27 @@ int ft_tail(int fd, unsigned int option)
 
     if (option)
     {
-        option--;
-        read(fd, strbuf, option);
-        ft_bzero(strbuf);
-        while ((read_bytes = read(fd, strbuf, BUFSIZ)))
+        lines = 0;
+        while ((read_bytes = read(fd, strbuf, BUFSIZ)) == BUFSIZ)
         {
             if (read_bytes == -1)
                 return ft_perror();
-            write(STDOUT_FILENO, strbuf, read_bytes);
+            *(linebuf + lines) = ft_strdup(strbuf);
+            lines++;
+        }
+        *(linebuf + lines) = ft_strdup(strbuf);
+        while ((read_bytes = (ft_strlen(*(linebuf+lines)))) < option && lines != 0)
+        {
+            option -= read_bytes;
+            lines--;
+        }
+        read_bytes = (read_bytes <= option) ? 0: read_bytes - option;
+        write(STDOUT_FILENO, ((*(linebuf+lines)) + read_bytes), ft_strlen((*(linebuf+lines))+read_bytes)); 
+        lines++;
+        while ((*(linebuf + lines)) != NULL)
+        {
+            write(STDOUT_FILENO, *(linebuf+lines), ft_strlen(*(linebuf+lines)));
+            lines++;
         }
     } else {
         lines = 0;
@@ -122,8 +135,8 @@ int ft_tail(int fd, unsigned int option)
             write(STDOUT_FILENO, *(linebuf+lines), ft_strlen(*(linebuf+lines)));
             lines++;
         }
-        ft_fflush(linebuf);
     }
+    ft_fflush(linebuf);
     return EXIT_SUCCESS;
 }
 
@@ -166,20 +179,20 @@ int main(int argc, char *argv[])
         {
             ft_tail(fd, 0);
             close(fd);
-            return write(STDOUT_FILENO, "1\n", 2); // last 10 lines
+            return (EXIT_SUCCESS);
         }
     if (argc == 3) {
         if((fd = open_handler(argv[1])) != -1 && (option = option_handler(argv[2])) != 0)
         {
             ft_tail(fd, option);
             close(fd);
-            return write(STDOUT_FILENO, "2\n", 2); // option on second
+            return (EXIT_SUCCESS);
         }
         else if((fd = open_handler(argv[2])) != -1 && (option = option_handler(argv[1])) != 0)
         {
             ft_tail(fd, option);
             close(fd);
-            return write(STDOUT_FILENO, "3\n", 2);
+            return (EXIT_SUCCESS);
         }
     }
     if (fd == -1)
