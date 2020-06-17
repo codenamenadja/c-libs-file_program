@@ -52,6 +52,18 @@
                 - file could be more than 1, so not recongnizes as an error for not opened for any reason.
                 - main routine returns count of close(fd).
                     - close occurs when only it opened.(means file could be read if there is no data.)
+- **v2**
+    - ``cat/Makefile``
 
-
+    - ``tail/Makefile``
+        - DESC
+            1. print last 10 lines of input file.(default)
+                - reads all file and uses malloc to allocate over BUFSIZ,
+                - counts \n characters from last allocateds, write() from that pointer till end.
+                - free all of line_buf pointer array at the end.
+            2. if option -cxx number adds to arguments regardless of order,  
+                will print xx bytes from bottom of the file.
+                - read all of files to read from bottom of the file.
+                - options is bigger than BUFSIZ? option-=BUFSIZ and entry point backs to last BUFSIZ-read string.
+                - free all of line_buf pointer array at the end.
 
