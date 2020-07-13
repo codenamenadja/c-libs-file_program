@@ -16,7 +16,7 @@ char        **ft_buffer(const char *str)
         return (NULL);
 
     i = 0;
-    buf = malloc(sizeof(char *) * (strlen(str)+1));
+    buf = malloc(sizeof(char *) * strlen(str));
     if(!buf)
         return (NULL);
     while (*(str + i))
@@ -24,7 +24,6 @@ char        **ft_buffer(const char *str)
         *(buf + i) = ft_itox(*(str + i));
         i++;
     }
-    *(buf + i) = NULL;
     return (buf);
 }
 
