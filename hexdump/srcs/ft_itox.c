@@ -3,7 +3,7 @@
 char    *ft_itox(int val)
 {
     char    ret[3];
-    int     key;
+    char    key;
 
     if (val < 0 || val > 127)
         return (NULL);
