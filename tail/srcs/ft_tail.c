@@ -85,6 +85,7 @@ int ft_tail(int fd, unsigned int option)
 
     if (option)
     {
+        option--;
         lines = 0;
         while ((read_bytes = read(fd, strbuf, BUFSIZ)) == BUFSIZ)
         {
@@ -110,7 +111,7 @@ int ft_tail(int fd, unsigned int option)
     } else {
         lines = 0;
         buf_pt = strbuf;
-        while(read_bytes = read(fd, buf_pt, 1))
+        while((read_bytes = read(fd, buf_pt, 1)))
         {
             if(read_bytes == -1)
             {
@@ -170,7 +171,6 @@ int main(int argc, char *argv[])
     // -c option only 
     // -c+num option prints all excepts num bytes from the head.
 
-    int i;
     int fd;
     unsigned int option;
 
@@ -184,13 +184,13 @@ int main(int argc, char *argv[])
     if (argc == 3) {
         if((fd = open_handler(argv[1])) != -1 && (option = option_handler(argv[2])) != 0)
         {
-            ft_tail(fd, option);
+            ft_tail(fd, option+1);
             close(fd);
             return (EXIT_SUCCESS);
         }
         else if((fd = open_handler(argv[2])) != -1 && (option = option_handler(argv[1])) != 0)
         {
-            ft_tail(fd, option);
+            ft_tail(fd, option+1);
             close(fd);
             return (EXIT_SUCCESS);
         }
