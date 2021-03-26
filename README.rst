@@ -13,6 +13,7 @@ Program list
 #. hexdump_         : imitating hexdump program
 #. wc_              : imitating wc program
 #. sort_            : imitating sort program
+#. od_				: imitating od program
 
 .. _display_file: display_file/
 .. _cat: cat/
@@ -20,8 +21,11 @@ Program list
 .. _hexdump: hexdump/
 .. _wc: wc/
 .. _sort: sort/
+.. _od: od/
 
 versions
 --------
 
-- ``20210224/display_file/fin``: feat/add/display_file
+- ``210224/display_file/fin``: feat/add/display_file
+- ``210326/new/od``: before hexdump
+
